@@ -20,7 +20,7 @@ module Eventless
 
       queue = @queue
       threadpool_size.times do
-      @workers << Thread.new do
+        @workers << Thread.new do
           loop do
             begin
               task = queue.pop
