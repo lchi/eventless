@@ -474,6 +474,10 @@ module Eventless
 
       pair
     end
+
+    [:accept_nonblock, :connect_nonblock, :recvfrom_nonblock].each do |sym|
+      alias_method sym, sym.to_s.gsub!(/_nonblock/, '')
+    end
   end
 
   AF_MAP = {}
