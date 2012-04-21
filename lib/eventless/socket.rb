@@ -539,6 +539,21 @@ module Eventless
       end
     end
 
+    def self.gethostbyname(*args)
+      queue = Queue.new
+      watcher = Eventless.loop.async
+      Eventless.loop.attach(watcher)
+
+      Eventless.threadpool.schedule do
+        res = RealTCPSocket.gethostbyname(*args)
+        queue << res
+        watcher.signal
+      end
+      Eventless.loop.transfer
+
+      queue.shift
+    end
+
     private
     def connect(*args)
       super(*args)
