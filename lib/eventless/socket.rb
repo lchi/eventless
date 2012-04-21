@@ -568,6 +568,8 @@ module Eventless
     def accept
       TCPSocket.for_fd(super[0].fileno)
     end
+
+    alias_method :accept_nonblock, :accept
   end
 
   class UDPSocket < IPSocket
