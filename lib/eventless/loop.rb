@@ -17,11 +17,18 @@ module Eventless
   class Loop
     attr_reader :running, :fiber
 
+=begin
     class << self
       attr_reader :default
     end
 
     @default = Thread.current._eventless_loop
+
+=end
+    def self.default
+        Thread.current._eventless_loop
+    end
+
 
     def initialize
       @loop = Coolio::Loop.new
