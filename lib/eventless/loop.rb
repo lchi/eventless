@@ -17,13 +17,11 @@ module Eventless
   class Loop
     attr_reader :running, :fiber
 
-    def self.default
-      unless Eventless.thread_patched?
-        Thread.current._eventless_loop
-      else
-        Thread._thread_current._eventless_loop
-      end
+    class << self
+      attr_reader :default
     end
+
+    @default = Eventless.thread_patched? ? Thread._thread_current._eventless_loop : Thread.current._eventless_loop
 
     def initialize
       @loop = Coolio::Loop.new
