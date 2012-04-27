@@ -21,7 +21,7 @@ module Eventless
       attr_reader :default
     end
 
-    @default = Eventless.thread_patched? ? Thread._thread_current._eventless_loop : Thread.current._eventless_loop
+    @default = Thread.current._eventless_loop
 
     def initialize
       @loop = Coolio::Loop.new
