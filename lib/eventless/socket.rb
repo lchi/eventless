@@ -249,7 +249,7 @@ module Eventless
 
       return nil if bytes.bytesize == 0
       if length and bytes.bytesize > length
-        byte_buffer << bytes.byteslice!(length, buffer.bytesize)
+        byte_buffer << bytes.byteslice!(length, bytes.bytesize)
       end
       buffer << bytes.to_s
 
