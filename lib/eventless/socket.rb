@@ -1,5 +1,4 @@
 require 'socket'
-require 'fcntl'
 
 module Eventless
   RealBasicSocket = ::BasicSocket
@@ -98,11 +97,8 @@ module Eventless
     def syswrite(*args)
       debug_puts "syswrite"
       begin
-        flags = @socket.fcntl(Fcntl::F_GETFL, 0)
         result = @socket.write_nonblock(*args)
-        @socket.fcntl(Fcntl::F_SETFL, flags)
       rescue IO::WaitWritable, Errno::EINTR
-        @socket.fcntl(Fcntl::F_SETFL, flags)
         wait(Eventless.loop.io(:write, self))
         retry
       end
@@ -127,11 +123,8 @@ module Eventless
     def sendmsg(*args)
       debug_puts "sendmsg"
       begin
-        flags = @socket.fcntl(Fcntl::F_GETFL, 0)
         result = @socket.sendmsg_nonblock(*args)
-        @socket.fcntl(Fcntl::F_SETFL, flags)
       rescue IO::WaitWritable
-        @socket.fcntl(Fcntl::F_SETFL, flags)
         wait(Eventless.loop.io(:write, self))
         retry
       end
@@ -189,11 +182,8 @@ module Eventless
       debug_puts "sysread"
       buffer = ""
       begin
-        flags = @socket.fcntl(Fcntl::F_GETFL, 0)
         buffer << @socket.read_nonblock(*args)
-        @socket.fcntl(Fcntl::F_SETFL, flags)
       rescue IO::WaitReadable
-        @socket.fcntl(Fcntl::F_SETFL, flags)
         wait(Eventless.loop.io(:read, self))
         retry
       end
@@ -303,11 +293,8 @@ module Eventless
     def recv(*args)
       debug_puts "recv"
       begin
-        flags = @socket.fcntl(Fcntl::F_GETFL, 0)
         mesg = @socket.recv_nonblock(*args)
-        @socket.fcntl(Fcntl::F_SETFL, flags)
       rescue IO::WaitReadable
-        @socket.fcntl(Fcntl::F_SETFL, flags)
         wait(Eventless.loop.io(:read, self))
         retry
       end
@@ -318,11 +305,8 @@ module Eventless
     def recvmsg(*args)
       debug_puts "recvmsg"
       begin
-        flags = @socket.fcntl(Fcntl::F_GETFL, 0)
         msg = @socket.recvmsg_nonblock(*args)
-        @socket.fcntl(Fcntl::F_SETFL, flags)
       rescue IO::WaitReadable
-        @socket.fcntl(Fcntl::F_SETFL, flags)
         wait(Eventless.loop.io(:read, self))
         retry
       end
@@ -341,16 +325,13 @@ module Eventless
     def connect(*args)
       debug_puts "connect"
       begin
-        flags = @socket.fcntl(Fcntl::F_GETFL, 0)
         @socket.connect_nonblock(*args)
-        @socket.fcntl(Fcntl::F_SETFL, flags)
       rescue IO::WaitWritable
-        @socket.fcntl(Fcntl::F_SETFL, flags)
         #debug_puts "connect: about to sleep"
         wait(Eventless.loop.io(:write, self))
         retry
       rescue Errno::EISCONN
-        @socket.fcntl(Fcntl::F_SETFL, flags)
+        # already connected
       end
       #debug_puts "Connected!"
     end
@@ -359,11 +340,8 @@ module Eventless
     def accept
       debug_puts "accept"
       begin
-        flags = @socket.fcntl(Fcntl::F_GETFL, 0)
         real_socket, real_addrinfo = @socket.accept_nonblock
-        @socket.fcntl(Fcntl::F_SETFL, flags)
       rescue IO::WaitReadable, Errno::EINTR
-        @socket.fcntl(Fcntl::F_SETFL, flags)
         wait(Eventless.loop.io(:read, self))
         retry
       end
@@ -463,11 +441,8 @@ module Eventless
     def recvfrom(*args)
       debug_puts "recvfrom"
       begin
-        flags = @socket.fcntl(Fcntl::F_GETFL, 0)
         pair = @socket.recvfrom_nonblock(*args)
-        @socket.fcntl(Fcntl::F_SETFL, flags)
       rescue IO::WaitReadable
-        @socket.fcntl(Fcntl::F_SETFL, flags)
         wait(Eventless.loop.io(:read, self))
         retry
       end
