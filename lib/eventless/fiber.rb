@@ -11,7 +11,6 @@ class Fiber
     @parent = parent
     @is_thread = false
     @started = false
-    @loop = Eventless.loop
 
     initialize_original do |*args|
       begin
@@ -43,10 +42,10 @@ class Fiber
         end
       end
 
-      @watcher = @loop.timer(0) do
+      @watcher = _loop.timer(0) do
         @links.each { |obj, method| obj.send(method, self) }
       end
-      @loop.attach(@watcher)
+      _loop.attach(@watcher)
 
       @dead = true
       @parent.transfer if @parent
@@ -112,7 +111,7 @@ class Fiber
 
     begin
       link(Fiber.current, :transfer)
-      @loop.transfer
+      _loop.transfer
     rescue Eventless::Timeout => t
       raise t unless t == timeout
       return nil
@@ -125,7 +124,7 @@ class Fiber
     @links << [obj, method]
 
     if dead? && !@watcher.attached?
-      @loop.attach(@watcher)
+      _loop.attach(@watcher)
     end
   end
 
@@ -179,6 +178,10 @@ class Fiber
 
   def is_new_thread?
     @is_thread and not @started
+  end
+
+  def _loop
+    @loop ||= Eventless.loop
   end
 end
 
