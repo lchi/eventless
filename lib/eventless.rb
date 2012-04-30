@@ -21,8 +21,9 @@ end
 
 module Eventless
   def self.spawn(&block)
-    f = Fiber.new(Eventless.loop.fiber, &block)
-    Eventless.loop.schedule(f)
+    _loop = Eventless.loop
+    f = Fiber.new(_loop.fiber, &block)
+    _loop.schedule(f)
 
     f
   end
