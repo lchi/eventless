@@ -373,7 +373,7 @@ module Eventless
     end
 
     def _loop
-      @loop ||= Eventless.loop.default
+      @loop ||= Eventless.loop
     end
 
     def socket=(socket)
