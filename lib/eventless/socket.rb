@@ -87,6 +87,7 @@ module Eventless
 
     # IO.new is the same as IO.for_fd
     def initialize(fd, *rest)
+      @loop = Eventless.loop
       if fd
         @socket = self.class.stock_class.for_fd(fd, *rest)
       end
@@ -99,7 +100,7 @@ module Eventless
       begin
         result = @socket.write_nonblock(*args)
       rescue IO::WaitWritable, Errno::EINTR
-        wait(Eventless.loop.io(:write, self))
+        wait(@loop.io(:write, self))
         retry
       end
 
@@ -125,7 +126,7 @@ module Eventless
       begin
         result = @socket.sendmsg_nonblock(*args)
       rescue IO::WaitWritable
-        wait(Eventless.loop.io(:write, self))
+        wait(@loop.io(:write, self))
         retry
       end
 
@@ -184,7 +185,7 @@ module Eventless
       begin
         buffer << @socket.read_nonblock(*args)
       rescue IO::WaitReadable
-        wait(Eventless.loop.io(:read, self))
+        wait(@loop.io(:read, self))
         retry
       end
 
@@ -295,7 +296,7 @@ module Eventless
       begin
         mesg = @socket.recv_nonblock(*args)
       rescue IO::WaitReadable
-        wait(Eventless.loop.io(:read, self))
+        wait(@loop.io(:read, self))
         retry
       end
 
@@ -307,7 +308,7 @@ module Eventless
       begin
         msg = @socket.recvmsg_nonblock(*args)
       rescue IO::WaitReadable
-        wait(Eventless.loop.io(:read, self))
+        wait(@loop.io(:read, self))
         retry
       end
 
@@ -328,7 +329,7 @@ module Eventless
         @socket.connect_nonblock(*args)
       rescue IO::WaitWritable
         #debug_puts "connect: about to sleep"
-        wait(Eventless.loop.io(:write, self))
+        wait(@loop.io(:write, self))
         retry
       rescue Errno::EISCONN
         # already connected
@@ -342,7 +343,7 @@ module Eventless
       begin
         real_socket, real_addrinfo = @socket.accept_nonblock
       rescue IO::WaitReadable, Errno::EINTR
-        wait(Eventless.loop.io(:read, self))
+        wait(@loop.io(:read, self))
         retry
       end
 
@@ -364,9 +365,9 @@ module Eventless
 
     # XXX: eventually this may have a second command called timeout
     def wait(watcher)
-      Eventless.loop.attach(watcher)
+      @loop.attach(watcher)
       begin
-        Eventless.loop.transfer
+        @loop.transfer
       ensure
         watcher.detach
       end
@@ -405,6 +406,7 @@ module Eventless
     end
 
     def initialize(domain, socktype, protocol=nil)
+      @loop = Eventless.loop
       unless domain == false
         @socket = self.class.stock_class.new(domain, socktype, protocol)
       end
@@ -443,7 +445,7 @@ module Eventless
       begin
         pair = @socket.recvfrom_nonblock(*args)
       rescue IO::WaitReadable
-        wait(Eventless.loop.io(:read, self))
+        wait(@loop.io(:read, self))
         retry
       end
 
@@ -504,6 +506,7 @@ module Eventless
     end
 
     def initialize(remote_host, remote_port, local_host=nil, local_port=nil)
+      @loop = Eventless.loop
       unless remote_host == false
         @socket = RealSocket.new(:INET, :STREAM)
         connect(Socket.pack_sockaddr_in(remote_port, remote_host))
@@ -516,15 +519,15 @@ module Eventless
 
     def self.gethostbyname(*args)
       queue = Queue.new
-      watcher = Eventless.loop.async
-      Eventless.loop.attach(watcher)
+      watcher = @loop.async
+      @loop.attach(watcher)
 
       Eventless.threadpool.schedule do
         res = RealTCPSocket.gethostbyname(*args)
         queue << res
         watcher.signal
       end
-      Eventless.loop.transfer
+      @loop.transfer
 
       queue.shift
     end
@@ -542,6 +545,7 @@ module Eventless
     end
 
     def initialize(hostname=nil, port)
+      @loop = Eventless.loop
       unless hostname == false and port == false
         Addrinfo.foreach(hostname, port, nil, :STREAM, nil, Socket::AI_PASSIVE) do |ai|
           begin
@@ -569,6 +573,7 @@ module Eventless
   class UDPSocket < IPSocket
     def initialize
       raise "Eventless::UDPSocket hasn't been implemented yet."
+      @loop = Eventless.loop
     end
   end
 
