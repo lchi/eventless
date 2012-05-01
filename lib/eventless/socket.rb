@@ -574,14 +574,9 @@ module Eventless
   end
 
   class ByteBuffer < String
-    class << self
-      alias_method :new_original, :new
-      def new(*args, &block)
-        buffer = new_original(*args, &block)
-        buffer.force_encoding('BINARY')
-
-        buffer
-      end
+    def initialize(*args)
+      super(*args)
+      force_encoding('BINARY')
     end
 
     alias_method :byteslice, :slice
