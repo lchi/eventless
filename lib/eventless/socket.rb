@@ -117,7 +117,7 @@ module Eventless
         break if written == str.bytesize
       end
 
-      str.bytesize
+      written
     end
 
     def sendmsg(*args)
