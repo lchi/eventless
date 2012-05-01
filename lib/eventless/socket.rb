@@ -109,7 +109,7 @@ module Eventless
     def write(str)
       debug_puts "write"
 
-      str = str.to_s
+      str = ByteBuffer.new(str)
       written = 0
 
       loop do
@@ -573,18 +573,19 @@ module Eventless
     end
   end
 
- class ByteBuffer < String
-    def binslice!(*args)
-      old_enc = encoding
+  class ByteBuffer < String
+    class << self
+      alias_method :new_original, :new
+      def new(*args, &block)
+        buffer = new_original(*args, &block)
+        buffer.force_encoding('BINARY')
 
-      force_encoding('BINARY')
-      ret = slice!(*args)
-      force_encoding(old_enc)
-
-      ret.force_encoding(old_enc)
-
-      ret
+        buffer
+      end
     end
+
+    alias_method :byteslice, :slice
+    alias_method :byteslice!, :slice!
   end
 end
 

@@ -8,7 +8,6 @@ require 'eventless/select'
 require 'eventless/timeout'
 require 'eventless/event'
 require 'eventless/threadpool'
-require 'eventless/core_ext/string'
 require 'eventless/util'
 
 module Kernel
