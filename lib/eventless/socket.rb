@@ -346,10 +346,7 @@ module Eventless
         retry
       end
 
-      sock = Socket._wrap(real_socket)
-      addrinfo = Addrinfo._wrap(real_addrinfo)
-
-      [sock, addrinfo]
+      [Socket._wrap(real_socket), Addrinfo._wrap(real_addrinfo)]
     end
 
     def bind(addr)
